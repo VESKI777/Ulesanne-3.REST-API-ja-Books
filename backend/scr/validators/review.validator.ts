@@ -17,5 +17,7 @@ export const reviewQuerySchema = z.object({
   order: z.enum(['asc', 'desc']).optional().default('desc')
 });
 
+// Типы для использования в сервисах и контроллерах
 export type CreateReviewInput = z.infer<typeof createReviewSchema>;
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
+export type ReviewQueryInput = z.infer<typeof reviewQuerySchema>;

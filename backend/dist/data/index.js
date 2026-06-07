@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.reviews = exports.genres = exports.publishers = exports.authors = exports.books = void 0;
+var books_1 = require("./books");
+Object.defineProperty(exports, "books", { enumerable: true, get: function () { return books_1.books; } });
+var authors_1 = require("./authors");
+Object.defineProperty(exports, "authors", { enumerable: true, get: function () { return authors_1.authors; } });
+var publishers_1 = require("./publishers");
+Object.defineProperty(exports, "publishers", { enumerable: true, get: function () { return publishers_1.publishers; } });
+var genres_1 = require("./genres");
+Object.defineProperty(exports, "genres", { enumerable: true, get: function () { return genres_1.genres; } });
+var reviews_1 = require("./reviews");
+Object.defineProperty(exports, "reviews", { enumerable: true, get: function () { return reviews_1.reviews; } });

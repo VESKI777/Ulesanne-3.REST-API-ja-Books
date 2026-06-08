@@ -1,5 +1,7 @@
 # Ulesanne-3.REST-API-ja-Books
 
+Autor: Marek Veskimeister
+
 Project Structure
 
 backend/

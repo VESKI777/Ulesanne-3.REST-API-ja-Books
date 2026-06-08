@@ -4,8 +4,9 @@ exports.BookController = void 0;
 const services_1 = require("../services");
 const validators_1 = require("../validators");
 const middleware_1 = require("../middleware");
+const genres_1 = require("../data/genres");
 class BookController {
-    // ПОЛУЧИТЬ /api/v1/books
+    // GET /api/v1/books
     static async getAllBooks(req, res, next) {
         try {
             const validatedQuery = validators_1.bookQuerySchema.parse(req.query);
@@ -29,7 +30,7 @@ class BookController {
             next(error);
         }
     }
-    // ПОЛУЧИТЬ /api/v1/books/:id
+    // GET /api/v1/books/:id
     static async getBookById(req, res, next) {
         try {
             const id = String(req.params.id);
@@ -43,26 +44,30 @@ class BookController {
             next(error);
         }
     }
-    // СОЗДАТЬ /api/v1/books
+    // POST /api/v1/books
     static async createBook(req, res, next) {
         try {
             const validatedData = validators_1.createBookSchema.parse(req.body);
             if (!services_1.BookService.checkAuthorExists(validatedData.authorId)) {
-                throw new middleware_1.AppError('Автор не найден', 404);
+                throw new middleware_1.AppError('Author not found', 404);
             }
             if (!services_1.BookService.checkPublisherExists(validatedData.publisherId)) {
-                throw new middleware_1.AppError('Издательство не найдено', 404);
+                throw new middleware_1.AppError('Publisher not found', 404);
+            }
+            for (const genreId of validatedData.genreIds) {
+                const genreExists = genres_1.genres.some(g => g.id === genreId);
+                if (!genreExists) {
+                    throw new middleware_1.AppError(`Genre with id ${genreId} not found`, 404);
+                }
             }
             const newBook = services_1.BookService.createBook(validatedData);
-            res.status(201).json({
-                data: newBook,
-            });
+            res.status(201).json({ data: newBook });
         }
         catch (error) {
             next(error);
         }
     }
-    // ОБНОВИТЬ /api/v1/books/:id
+    // PUT /api/v1/books/:id
     static async updateBook(req, res, next) {
         try {
             const id = String(req.params.id);
@@ -71,15 +76,13 @@ class BookController {
             if (!updatedBook) {
                 throw new middleware_1.AppError('Книга не найдена', 404);
             }
-            res.json({
-                data: updatedBook,
-            });
+            res.json({ data: updatedBook });
         }
         catch (error) {
             next(error);
         }
     }
-    // УДАЛИТЬ /api/v1/books/:id
+    // DELETE /api/v1/books/:id
     static async deleteBook(req, res, next) {
         try {
             const id = String(req.params.id);
@@ -93,7 +96,7 @@ class BookController {
             next(error);
         }
     }
-    // ПОЛУЧИТЬ /api/v1/books/:id/reviews
+    // GET /api/v1/books/:id/reviews
     static async getBookReviews(req, res, next) {
         try {
             const id = String(req.params.id);
@@ -102,15 +105,13 @@ class BookController {
                 throw new middleware_1.AppError('Книга не найдена', 404);
             }
             const reviews = services_1.BookService.getBookReviews(id);
-            res.json({
-                data: reviews,
-            });
+            res.json({ data: reviews });
         }
         catch (error) {
             next(error);
         }
     }
-    // ПОЛУЧИТЬ /api/v1/books/:id/average-rating
+    // GET /api/v1/books/:id/average-rating
     static async getAverageRating(req, res, next) {
         try {
             const id = String(req.params.id);
@@ -126,6 +127,22 @@ class BookController {
                     totalReviews: services_1.BookService.getBookReviews(id).length,
                 },
             });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    // POST /api/v1/books/:id/reviews
+    static async createReview(req, res, next) {
+        try {
+            const id = String(req.params.id);
+            const validatedData = validators_1.createReviewSchema.parse(req.body);
+            const book = services_1.BookService.getBookById(id);
+            if (!book) {
+                throw new middleware_1.AppError('Book not found', 404);
+            }
+            const newReview = services_1.ReviewService.createReview(id, validatedData);
+            res.status(201).json({ data: newReview });
         }
         catch (error) {
             next(error);

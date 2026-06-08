@@ -1,14 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
-import { BookService } from '../services';
+import { BookService, ReviewService } from '../services';
 import {
   createBookSchema,
   updateBookSchema,
   bookQuerySchema,
+  createReviewSchema,
 } from '../validators';
 import { AppError } from '../middleware';
+import { genres } from '../data/genres';
 
 export class BookController {
-  // ПОЛУЧИТЬ /api/v1/books
+  // GET /api/v1/books
   static async getAllBooks(
     req: Request,
     res: Response,
@@ -38,7 +40,7 @@ export class BookController {
     }
   }
 
-  // ПОЛУЧИТЬ /api/v1/books/:id
+  // GET /api/v1/books/:id
   static async getBookById(
     req: Request,
     res: Response,
@@ -48,7 +50,6 @@ export class BookController {
       const id = String(req.params.id);
 
       const book = BookService.getBookById(id);
-
       if (!book) {
         throw new AppError('Книга не найдена', 404);
       }
@@ -59,7 +60,7 @@ export class BookController {
     }
   }
 
-  // СОЗДАТЬ /api/v1/books
+  // POST /api/v1/books
   static async createBook(
     req: Request,
     res: Response,
@@ -69,24 +70,28 @@ export class BookController {
       const validatedData = createBookSchema.parse(req.body);
 
       if (!BookService.checkAuthorExists(validatedData.authorId)) {
-        throw new AppError('Автор не найден', 404);
+        throw new AppError('Author not found', 404);
       }
 
       if (!BookService.checkPublisherExists(validatedData.publisherId)) {
-        throw new AppError('Издательство не найдено', 404);
+        throw new AppError('Publisher not found', 404);
+      }
+
+      for (const genreId of validatedData.genreIds) {
+        const genreExists = genres.some(g => g.id === genreId);
+        if (!genreExists) {
+          throw new AppError(`Genre with id ${genreId} not found`, 404);
+        }
       }
 
       const newBook = BookService.createBook(validatedData);
-
-      res.status(201).json({
-        data: newBook,
-      });
+      res.status(201).json({ data: newBook });
     } catch (error) {
       next(error);
     }
   }
 
-  // ОБНОВИТЬ /api/v1/books/:id
+  // PUT /api/v1/books/:id
   static async updateBook(
     req: Request,
     res: Response,
@@ -102,15 +107,13 @@ export class BookController {
         throw new AppError('Книга не найдена', 404);
       }
 
-      res.json({
-        data: updatedBook,
-      });
+      res.json({ data: updatedBook });
     } catch (error) {
       next(error);
     }
   }
 
-  // УДАЛИТЬ /api/v1/books/:id
+  // DELETE /api/v1/books/:id
   static async deleteBook(
     req: Request,
     res: Response,
@@ -131,7 +134,7 @@ export class BookController {
     }
   }
 
-  // ПОЛУЧИТЬ /api/v1/books/:id/reviews
+  // GET /api/v1/books/:id/reviews
   static async getBookReviews(
     req: Request,
     res: Response,
@@ -141,22 +144,19 @@ export class BookController {
       const id = String(req.params.id);
 
       const book = BookService.getBookById(id);
-
       if (!book) {
         throw new AppError('Книга не найдена', 404);
       }
 
       const reviews = BookService.getBookReviews(id);
 
-      res.json({
-        data: reviews,
-      });
+      res.json({ data: reviews });
     } catch (error) {
       next(error);
     }
   }
 
-  // ПОЛУЧИТЬ /api/v1/books/:id/average-rating
+  // GET /api/v1/books/:id/average-rating
   static async getAverageRating(
     req: Request,
     res: Response,
@@ -166,7 +166,6 @@ export class BookController {
       const id = String(req.params.id);
 
       const book = BookService.getBookById(id);
-
       if (!book) {
         throw new AppError('Книга не найдена', 404);
       }
@@ -180,6 +179,29 @@ export class BookController {
           totalReviews: BookService.getBookReviews(id).length,
         },
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // POST /api/v1/books/:id/reviews
+  static async createReview(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const id = String(req.params.id);
+      const validatedData = createReviewSchema.parse(req.body);
+
+      const book = BookService.getBookById(id);
+      if (!book) {
+        throw new AppError('Book not found', 404);
+      }
+
+      const newReview = ReviewService.createReview(id, validatedData);
+
+      res.status(201).json({ data: newReview });
     } catch (error) {
       next(error);
     }

@@ -1,16 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
-import { ReviewService } from '../services';
-import { BookService } from '../services';
+import { ReviewService, BookService } from '../services';
 import {
   createReviewSchema,
   updateReviewSchema,
   reviewQuerySchema,
-  ReviewQueryInput
 } from '../validators';
 import { AppError } from '../middleware';
 
 export class ReviewController {
-  // ПОЛУЧИТЬ /api/v1/books/:bookId/reviews
+  // GET /api/v1/books/:bookId/reviews
   static async getBookReviews(
     req: Request,
     res: Response,
@@ -18,14 +16,11 @@ export class ReviewController {
   ) {
     try {
       const bookId = String(req.params.bookId);
-      const validatedQuery = reviewQuerySchema.parse(
-        req.query
-      ) as ReviewQueryInput;
+      const validatedQuery = reviewQuerySchema.parse(req.query);
 
       const book = BookService.getBookById(bookId);
-
       if (!book) {
-        throw new AppError('Книга не найдена', 404);
+        throw new AppError('Book not found', 404);
       }
 
       const { data, total } = ReviewService.getBookReviews(
@@ -39,7 +34,7 @@ export class ReviewController {
     }
   }
 
-  // ПОЛУЧИТЬ /api/v1/reviews/:id
+  // GET /api/v1/reviews/:id
   static async getReviewById(
     req: Request,
     res: Response,
@@ -51,7 +46,7 @@ export class ReviewController {
       const review = ReviewService.getReviewById(id);
 
       if (!review) {
-        throw new AppError('Отзыв не найден', 404);
+        throw new AppError('Review not found', 404);
       }
 
       res.json({ data: review });
@@ -60,7 +55,7 @@ export class ReviewController {
     }
   }
 
-  // СОЗДАТЬ /api/v1/books/:bookId/reviews
+  // POST /api/v1/books/:bookId/reviews
   static async createReview(
     req: Request,
     res: Response,
@@ -71,25 +66,19 @@ export class ReviewController {
       const validatedData = createReviewSchema.parse(req.body);
 
       const book = BookService.getBookById(bookId);
-
       if (!book) {
-        throw new AppError('Книга не найдена', 404);
+        throw new AppError('Book not found', 404);
       }
 
-      const newReview = ReviewService.createReview(
-        bookId,
-        validatedData
-      );
+      const newReview = ReviewService.createReview(bookId, validatedData);
 
-      res.status(201).json({
-        data: newReview
-      });
+      res.status(201).json({ data: newReview });
     } catch (error) {
       next(error);
     }
   }
 
-  // ОБНОВИТЬ /api/v1/reviews/:id
+  // PUT /api/v1/reviews/:id
   static async updateReview(
     req: Request,
     res: Response,
@@ -99,24 +88,19 @@ export class ReviewController {
       const id = String(req.params.id);
       const validatedData = updateReviewSchema.parse(req.body);
 
-      const updatedReview = ReviewService.updateReview(
-        id,
-        validatedData
-      );
+      const updatedReview = ReviewService.updateReview(id, validatedData);
 
       if (!updatedReview) {
-        throw new AppError('Отзыв не найден', 404);
+        throw new AppError('Review not found', 404);
       }
 
-      res.json({
-        data: updatedReview
-      });
+      res.json({ data: updatedReview });
     } catch (error) {
       next(error);
     }
   }
 
-  // УДАЛИТЬ /api/v1/reviews/:id
+  // DELETE /api/v1/reviews/:id
   static async deleteReview(
     req: Request,
     res: Response,
@@ -128,7 +112,7 @@ export class ReviewController {
       const deleted = ReviewService.deleteReview(id);
 
       if (!deleted) {
-        throw new AppError('Отзыв не найден', 404);
+        throw new AppError('Review not found', 404);
       }
 
       res.status(204).send();

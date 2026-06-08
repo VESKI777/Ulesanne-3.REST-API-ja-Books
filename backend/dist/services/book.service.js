@@ -82,7 +82,9 @@ class BookService {
         return { ...book, author, publisher };
     }
     // Создать новую книгу
+    // Создать новую книгу
     static createBook(data) {
+        // Находим жанры по ID
         const selectedGenres = genres_1.genres.filter(g => data.genreIds.includes(g.id));
         const newBook = {
             id: (0, uuid_1.v4)(),

@@ -101,31 +101,33 @@ export class BookService {
   }
 
   // Создать новую книгу
-  static createBook(data: CreateBookInput): BookWithDetails {
-    const selectedGenres = genres.filter(g => data.genreIds.includes(g.id));
-    
-    const newBook: Book = {
-      id: uuidv4(),
-      title: data.title,
-      isbn: data.isbn,
-      publishedYear: data.publishedYear,
-      pageCount: data.pageCount,
-      language: data.language,
-      description: data.description,
-      coverImage: data.coverImage,
-      authorId: data.authorId,
-      publisherId: data.publisherId,
-      genres: selectedGenres,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    books.push(newBook);
-    
-    const author = authors.find(a => a.id === newBook.authorId)!;
-    const publisher = publishers.find(p => p.id === newBook.publisherId)!;
-    return { ...newBook, author, publisher };
-  }
+// Создать новую книгу
+static createBook(data: CreateBookInput): BookWithDetails {
+  // Находим жанры по ID
+  const selectedGenres = genres.filter(g => data.genreIds.includes(g.id));
+  
+  const newBook: Book = {
+    id: uuidv4(),
+    title: data.title,
+    isbn: data.isbn,
+    publishedYear: data.publishedYear,
+    pageCount: data.pageCount,
+    language: data.language,
+    description: data.description,
+    coverImage: data.coverImage,
+    authorId: data.authorId,
+    publisherId: data.publisherId,
+    genres: selectedGenres,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  
+  books.push(newBook);
+  
+  const author = authors.find(a => a.id === newBook.authorId)!;
+  const publisher = publishers.find(p => p.id === newBook.publisherId)!;
+  return { ...newBook, author, publisher };
+}
 
   // Обновить книгу
   static updateBook(id: string, data: UpdateBookInput): BookWithDetails | null {
